@@ -166,7 +166,7 @@ Router::get(WP::path().'author/{author}/page/{currentPage}',function($author,$cu
 
     WP::author($author);
 
-})->where(Array('author'=>'alpha_numeric','currentPage'=>'integer');
+})->where(Array('author'=>'alpha_numeric','currentPage'=>'integer'));
 
 
 

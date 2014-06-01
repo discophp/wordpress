@@ -15,12 +15,12 @@
     "autoload": {
         "classmap":[
             "addon/facade/",
-            "addon/class/",
+            "addon/classes/",
             "addon/template/",
             "addon/router/"
             ],
             "psr-4":{
-                "Disco\\addon\\":"addon/"
+                "Disco\\addon\\Wordpress\\":"addon/"
             }
     }
 }
