@@ -1,5 +1,5 @@
 <?php
-namespace \Disco\addon\Wordpress\classes;
+namespace Disco\addon\Wordpress\classes;
 
 
 class WordPress {
@@ -336,7 +336,7 @@ class WordPress {
         $html='';
         while($row = $posts->fetch_assoc()){
             $row['path'] = $this->path;
-            $html.=Template::build('wordpress/post-list',$row);
+            $html.= \Template::build('wordpress/post-list',$row);
         }//while
 
         return $html;
@@ -360,7 +360,7 @@ class WordPress {
         $html = '';
         while($row = $result->fetch_assoc()){
             $row['path'] = $this->path;
-            $html.= Template::build('wordpress/tag-list',$row);
+            $html.= \Template::build('wordpress/tag-list',$row);
         }//while
 
         return $html;
@@ -382,7 +382,7 @@ class WordPress {
         $html = '';
         while($row = $result->fetch_assoc()){
             $row['path'] = $this->path;
-            $html.=Template::build('wordpress/category-list',$row);
+            $html.= \Template::build('wordpress/category-list',$row);
         }//while
 
         return $html;
@@ -441,7 +441,7 @@ class WordPress {
         while($row = $result->fetch_assoc()){
             $row['path'] = $this->path;
 
-            $html.= Template::build('wordpress/author-list',$row);
+            $html.= \Template::build('wordpress/author-list',$row);
         }//while
 
         return $html;
@@ -561,7 +561,7 @@ class WordPress {
 
             $row['path'] = $this->path;
 
-            $feed.= Template::build('wordpress/post',$row);
+            $feed.= \Template::build('wordpress/post',$row);
 
         }//while
 
@@ -572,7 +572,7 @@ class WordPress {
 
 
         if($this->settings['inject_feed']){
-            View::html($feed);
+            \View::html($feed);
         }//if
         else {
             return $feed;
@@ -595,10 +595,10 @@ class WordPress {
 
         foreach($terms as $term){
             $term['path'] = $this->path;
-            $html.= Template::build('wordpress/tag',$term);
+            $html.= \Template::build('wordpress/tag',$term);
         }//foreach
 
-        return Template::build('wordpress/tag-container',Array('tags'=>$html));
+        return \Template::build('wordpress/tag-container',Array('tags'=>$html));
 
     }//formatTerms
 
@@ -617,10 +617,10 @@ class WordPress {
 
         foreach($terms as $term){
             $term['path'] = $this->path;
-            $html.= Template::build('wordpress/category',$term);
+            $html.= \Template::build('wordpress/category',$term);
         }//foreach
 
-        return Template::build('wordpress/category-container',Array('cats'=>$html));
+        return \Template::build('wordpress/category-container',Array('cats'=>$html));
 
     }//formatTerms
 
@@ -695,7 +695,7 @@ class WordPress {
                 $classes = 'current';
             }//elif
 
-            $html.= Template::build('wordpress/pagination-list',
+            $html.= \Template::build('wordpress/pagination-list',
                 Array('classes'=>$classes,'page'=>$iter,'slug'=>$slug)
             );
 
@@ -739,7 +739,7 @@ class WordPress {
             $data['last_arrow_slug']='';
         }//el
 
-        return Template::build('wordpress/pagination-container',$data);
+        return \Template::build('wordpress/pagination-container',$data);
 
     }//printPagination
 
@@ -758,7 +758,7 @@ class WordPress {
 
         $html = '';
         foreach($data as $k=>$v){
-            $html.= Template::build('wordpress/breadcrumb',
+            $html.= \Template::build('wordpress/breadcrumb',
                 Array(
                     'path'=>$this->path,
                     'slug'=>$v,
@@ -768,10 +768,10 @@ class WordPress {
 
         }//foreach
 
-        $crumbs = Template::build('wordpress/breadcrumb-container',Array('crumbs'=>$html,'path'=>$this->path));
+        $crumbs = \Template::build('wordpress/breadcrumb-container',Array('crumbs'=>$html,'path'=>$this->path));
 
         if($this->settings['inject_feed']){
-            View::html($crumbs);
+            \View::html($crumbs);
         }//if
         else {
             return $crumbs;
