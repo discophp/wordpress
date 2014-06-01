@@ -1,4 +1,5 @@
 <?php
+namespace \Disco\addon\Wordpress\classes;
 
 
 class WordPress {
@@ -41,7 +42,7 @@ class WordPress {
     */
     public function __construct(){
         //$this->templates = require('../app/wordpress-templates.php');
-        $row = DB::query('
+        $row = \DB::query('
             SELECT 
             (SELECT option_value FROM wp_options WHERE option_name="posts_per_page") AS posts_per_page, 
             (SELECT option_value FROM wp_options WHERE option_name="home") AS path
@@ -173,7 +174,7 @@ class WordPress {
     public function search($search){
         $search = '%'.$search.'%';
         $this->workingCondition = ' AND (p.post_title LIKE ? OR p.post_content LIKE ?) ORDER BY p.post_date DESC ';
-        $this->workingCondition = DB::set($this->workingCondition,Array($search,$search));
+        $this->workingCondition = \DB::set($this->workingCondition,Array($search,$search));
         $this->templates['post'] = $this->templates['feed'];
         return $this->feed();
     }//index
@@ -182,7 +183,7 @@ class WordPress {
         if(is_array($search)){
             $s = '(p.post_title LIKE ? OR p.post_content LIKE ?) OR ';
             foreach($search as $k=>$v){
-                $search[$k] = DB::set($s,Array('%'.$v.'%','%'.$v.'%'));
+                $search[$k] = \DB::set($s,Array('%'.$v.'%','%'.$v.'%'));
             }//foreach
             $search[count($search)-1] = rtrim($search[count($search)-1],'OR ');
             $this->workingCondition = ' AND ('.implode('',$search).') ORDER BY p.post_date DESC ';
@@ -190,7 +191,7 @@ class WordPress {
         else {
             $search = '%'.$search.'%';
             $this->workingCondition = ' AND (p.post_title LIKE ? OR p.post_content LIKE ?) ORDER BY p.post_date DESC ';
-            $this->workingCondition = DB::set($this->workingCondition,Array($search,$search));
+            $this->workingCondition = \DB::set($this->workingCondition,Array($search,$search));
         }//el
 
         return $this->data($limit);
@@ -207,7 +208,7 @@ class WordPress {
      * @reutrn mixed 
     */
     public function post($slug){
-        $this->workingCondition = DB::set(' AND p.post_name=?',$slug);
+        $this->workingCondition = \DB::set(' AND p.post_name=?',$slug);
         $this->singlePost=true;
         return $this->feed();
     }//post
@@ -221,7 +222,7 @@ class WordPress {
      * @reutrn mixed 
     */
     public function postData($slug){
-        $this->workingCondition = DB::set(' AND p.post_name=?',$slug);
+        $this->workingCondition = \DB::set(' AND p.post_name=?',$slug);
         return $this->data();
     }//post
 
@@ -259,7 +260,7 @@ class WordPress {
             ORDER BY p.post_date DESC
             ';
 
-        $this->workingCondition = DB::set($where,$tag);
+        $this->workingCondition = \DB::set($where,$tag);
         $this->templates['post'] = $this->templates['feed'];
         return $this->feed();
     }//tag
@@ -285,7 +286,7 @@ class WordPress {
             ORDER BY p.post_date DESC
             ';
 
-        $this->workingCondition = DB::set($where,$category);
+        $this->workingCondition = \DB::set($where,$category);
         $this->templates['post'] = $this->templates['feed'];
         return $this->feed();
     }//category
@@ -306,7 +307,7 @@ class WordPress {
             ';
 
 
-        $this->workingCondition = DB::set($where,$author);
+        $this->workingCondition = \DB::set($where,$author);
         $this->templates['post'] = $this->templates['feed'];
         $this->feed();
     }//tag
@@ -322,7 +323,7 @@ class WordPress {
     */
     public function recentPosts(){
 
-        $posts = DB::query('
+        $posts = \DB::query('
             SELECT 
             post_title,
             post_name
@@ -401,7 +402,7 @@ class WordPress {
      *      @return object
     */
     private function topTerms($count,$type){
-        return DB::query('
+        return \DB::query('
             SELECT 
             t.name,
             t.slug,
@@ -426,7 +427,7 @@ class WordPress {
     */
     public function topAuthors($count=5){
 
-        $result = DB::query('
+        $result = \DB::query('
             SELECT 
             u.user_nicename,
             u.display_name,
@@ -450,7 +451,7 @@ class WordPress {
 
 
     private function data($limit=''){
-        return DB::query('
+        return \DB::query('
             SELECT 
             p.*,
             DATE_FORMAT(p.post_date,"'.$this->settings['date_format'].'") AS format_date, 
@@ -496,14 +497,14 @@ class WordPress {
     private function feed(){
         $s=0;
 
-        if(Data::get('current-page')>=1){
+        if(\Data::get('current-page')>=1){
 
-            $s = Data::get('current-page');
+            $s = \Data::get('current-page');
 
             $s = ($s-1)*$this->settings['posts_per_page'];
 
         }//if
-        else if(Data::get('page')===0){
+        else if(\Data::get('page')===0){
             $send = rtrim('0',$_SERVER['REQUEST_URI']);
             $send.='1';
             header('Location: '.$send);
@@ -634,7 +635,7 @@ class WordPress {
     */
     private function totalCount(){
 
-        $row = DB::query('
+        $row = \DB::query('
             SELECT COUNT(*) as total
             FROM wp_posts AS p
             INNER JOIN wp_users AS u ON u.ID=p.post_author
@@ -670,7 +671,7 @@ class WordPress {
             $slug = $_SERVER['REQUEST_URI'];
             $slug = explode('/',$slug);
             $tail = $this->settings['pagination_slug'].'/'.$iter;
-            if(Data::get('current-page')===false){
+            if(\Data::get('current-page')===false){
                 //$slug[count($slug)-1] = rtrim('/',$slug[count($slug)-1]);
                 if($slug[count($slug)-1]==""){
                     $slug[count($slug)-1] = $tail;
@@ -687,10 +688,10 @@ class WordPress {
 
             $classes = '';
 
-            if(Data::get('current-page')!==false && $iter==Data::get('current-page')){
+            if(\Data::get('current-page')!==false && $iter==\Data::get('current-page')){
                 $classes = 'current';
             }//if
-            else if(Data::get('current-page')===false && $iter==1){
+            else if(\Data::get('current-page')===false && $iter==1){
                 $classes = 'current';
             }//elif
 
@@ -705,7 +706,7 @@ class WordPress {
         $slug = $_SERVER['REQUEST_URI'];
         $slug = explode('/',$slug);
         $nFslug = $this->settings['pagination_slug'].'/1';
-        if(Data::get('current-page')===false){
+        if(\Data::get('current-page')===false){
             $slug[] = $nFslug;
         }//if
         else {
@@ -724,11 +725,11 @@ class WordPress {
             'last_arrow_slug'=>$lslug
         );
 
-        if(Data::get('current-page')===false){
+        if(\Data::get('current-page')===false){
             $data['first_arrow_classes']='unavailable';
             $data['first_arrow_slug']='';
         }//if
-        else if($numPages == Data::get('current-page')){
+        else if($numPages == \Data::get('current-page')){
             $data['last_arrow_classes']='unavailable';
             $data['last_arrow_slug']='';
         }//elif
