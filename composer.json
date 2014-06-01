@@ -17,7 +17,6 @@
             "addon/facade/",
             "addon/class/",
             "addon/template/",
-            "addon/model/",
             "addon/router/"
             ],
             "psr-4":{
