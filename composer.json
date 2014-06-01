@@ -1,0 +1,27 @@
+{
+    "name":"discophp/wordpress",
+    "description":"Wordpress Addon for the Disco PHP Framework",
+    "license":"Apache License V2",
+    "authors":[
+        {
+            "name":"Bradley Hamilton",
+            "email":"bradleygoskimmin@gmail.com"
+        }
+    ],
+    "minimum-stability":"dev",
+    "require":{
+        "php":">=5.4.0"
+    },
+    "autoload": {
+        "classmap":[
+            "addon/facade/",
+            "addon/class/",
+            "addon/template/",
+            "addon/model/",
+            "addon/router/"
+            ],
+            "psr-4":{
+                "Disco\\addon\\":"addon/"
+            }
+    }
+}

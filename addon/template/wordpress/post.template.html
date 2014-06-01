@@ -1,0 +1,18 @@
+<div class="wp-post">
+
+    <p class="wp-post-title"><a href="{{$path}}{{$post_name}}">{{$post_title}}</a></p>
+
+    <ul class="wp-post-meta">
+        <li>Posted On: {{$format_date}}</li>
+        <li>Authored By: <a href="{{&$path}}author/{{$user_nicename}}">{{$display_name}}</a></li>
+    </ul>
+
+    {{$cats}}
+
+    <div class="wp-post-content">
+        {{$post_content}}
+    </div>
+
+    {{$tags}}
+
+</div>
