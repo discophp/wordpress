@@ -16,6 +16,7 @@
         "classmap":[
             "addon/facade/",
             "addon/classes/",
+            "addon/model/",
             "addon/template/",
             "addon/router/"
             ],

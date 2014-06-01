@@ -1,8 +1,15 @@
 <?php
 namespace Disco\addon\Wordpress\classes;
+/**
+ * This file holds the WordPress class.
+*/
 
 
-class WordPress {
+/**
+ *
+ *
+*/
+class WordPress extends \Disco\addon\Wordpress\model\WordPress {
 
     //condition used to query to generate feeds
     private $workingCondition='';
@@ -11,17 +18,10 @@ class WordPress {
     //are we viewing a single post?
     private $singlePost = false;
 
+    
 
     //what is the path of the wordpress installation?
     public $path='';
-
-
-    //templates we are going to use to generate markup
-    public $templates;
-
-
-    //override templates
-    public $userTemplates = Array();
 
 
     //settings
@@ -41,7 +41,6 @@ class WordPress {
      *      @return void
     */
     public function __construct(){
-        //$this->templates = require('../app/wordpress-templates.php');
         $row = \DB::query('
             SELECT 
             (SELECT option_value FROM wp_options WHERE option_name="posts_per_page") AS posts_per_page, 
@@ -101,57 +100,6 @@ class WordPress {
 
 
     /**
-     *      Set a user template on the fly
-     *
-     *
-     *      @param $k the template key
-     *      @param $v the template value 
-     *      @return void
-    */
-    public function template($k,$v){
-        $this->userTemplates[$k]=$v;
-    }//template
-
-
-
-    /**
-     *      Return the template we are supposed to be using to generate whatever markup.
-     *      If a user has set a template then use theirs rather than the default.
-     *
-     *
-     *      @param $t the template key
-     *      @return string the template
-    */
-    private function useTemplate($t){
-        if(isset($this->userTemplates[$t])){
-            return $this->userTemplates[$t];
-        }//if
-        else {
-            return $this->templates[$t];
-        }//el
-
-    }//useTemplate
-
-
-
-    /**
-     *      Unset a dynamic user template
-     *
-     *
-     *      @param $k the template key
-     *      @return void
-    */
-    public function clearTemplate($k){
-        unset($this->userTemplates[$k]);
-    }//clearTemplate
-
-
-
-
-
-
-
-    /**
      *      Generate the index
      *
      *
@@ -178,25 +126,6 @@ class WordPress {
         $this->templates['post'] = $this->templates['feed'];
         return $this->feed();
     }//index
-
-    public function searchData($search,$limit=''){
-        if(is_array($search)){
-            $s = '(p.post_title LIKE ? OR p.post_content LIKE ?) OR ';
-            foreach($search as $k=>$v){
-                $search[$k] = \DB::set($s,Array('%'.$v.'%','%'.$v.'%'));
-            }//foreach
-            $search[count($search)-1] = rtrim($search[count($search)-1],'OR ');
-            $this->workingCondition = ' AND ('.implode('',$search).') ORDER BY p.post_date DESC ';
-        }//if
-        else {
-            $search = '%'.$search.'%';
-            $this->workingCondition = ' AND (p.post_title LIKE ? OR p.post_content LIKE ?) ORDER BY p.post_date DESC ';
-            $this->workingCondition = \DB::set($this->workingCondition,Array($search,$search));
-        }//el
-
-        return $this->data($limit);
-
-    }//searchdata
 
 
 
@@ -234,8 +163,9 @@ class WordPress {
      *
     */
     public function listPosts(){
-        $this->templates['post'] = $this->templates['feed'];
-        $this->workingCondition = ' ORDER BY p.post_date DESC ';
+        //$this->templates['post'] = $this->templates['feed'];
+        //$this->workingCondition = ' ORDER BY p.post_date DESC ';
+        parent::prep('list-posts');
         return $this->feed();
     }//listArticles
 
@@ -450,43 +380,6 @@ class WordPress {
 
 
 
-    private function data($limit=''){
-        return \DB::query('
-            SELECT 
-            p.*,
-            DATE_FORMAT(p.post_date,"'.$this->settings['date_format'].'") AS format_date, 
-            t.name,
-            t.slug,
-            c.name AS category,
-            c.slug AS category_slug
-            FROM (
-                SELECT 
-                p.ID AS post_id,
-                p.post_date,
-                p.post_content,
-                p.post_excerpt,
-                p.post_title,
-                p.post_name,
-                u.display_name,
-                u.user_nicename
-                FROM wp_posts AS p
-                INNER JOIN wp_users AS u ON u.ID=p.post_author
-                WHERE p.post_status="publish" AND p.post_type="post"
-                '.$this->workingCondition.$limit.' 
-
-            ) AS p
-            LEFT JOIN wp_term_relationships AS wptr ON wptr.object_id=p.post_id
-            LEFT JOIN wp_term_taxonomy AS wptt ON wptt.term_taxonomy_id=wptr.term_taxonomy_id
-            LEFT JOIN wp_terms AS t ON t.term_id=wptt.term_id
-            LEFT JOIN wp_term_taxonomy AS wptt_category ON wptt_category.term_taxonomy_id=wptr.term_taxonomy_id AND wptt_category.taxonomy="category"
-            LEFT JOIN wp_terms AS c ON c.term_id=wptt_category.term_id
-            ORDER BY p.post_date DESC
-        ');
-
-    }//data
-
-
-
 
     /**
      *      Generate the requested feed (accounting for pagination) based on the set $matchingCondition
@@ -512,7 +405,7 @@ class WordPress {
 
         $limit = " LIMIT {$s},{$this->settings['posts_per_page']}";
 
-        $posts = $this->data($limit);
+        $posts = parent::data($limit);
 
         $feed = '';
 
