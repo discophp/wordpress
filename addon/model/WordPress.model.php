@@ -4,17 +4,77 @@ namespace Disco\addon\Wordpress\model;
 class WordPress {
 
     public $qs = Array(
+        'index'=>' ORDER BY p.post_date DESC ',
         'search'=>' AND (p.post_title LIKE ? OR p.post_content LIKE ?) ORDER BY p.post_date DESC ',
-        'list-posts'=>' ORDER BY p.post_date DESC '
+        'list-posts'=>' ORDER BY p.post_date DESC ',
+        'post'=>' AND p.post_name=?',
+        'tag'=>'
+                AND p.ID IN ( 
+                    SELECT wptr.object_id 
+                    FROM wp_term_relationships AS wptr
+                    INNER JOIN wp_term_taxonomy AS wptt ON wptt.term_taxonomy_id=wptr.term_taxonomy_id AND wptt.taxonomy="post_tag"
+                    INNER JOIN wp_terms AS t ON t.term_id=wptt.term_id
+                    WHERE t.slug=?
+                ) 
+                ORDER BY p.post_date DESC',
+        'category'=>'
+                AND p.ID IN ( 
+                    SELECT wptr.object_id 
+                    FROM wp_term_relationships AS wptr
+                    INNER JOIN wp_term_taxonomy AS wptt ON wptt.term_taxonomy_id=wptr.term_taxonomy_id AND wptt.taxonomy="category"
+                    INNER JOIN wp_terms AS t ON t.term_id=wptt.term_id
+                    WHERE t.slug=?
+                ) 
+                ORDER BY p.post_date DESC',
+        'author'=>'
+                AND p.post_author = ( SELECT wpu.ID FROM wp_users AS wpu WHERE wpu.user_nicename=? )
+                ORDER BY p.post_date DESC',
+        'recent-posts'=>'
+            SELECT 
+            post_title,
+            post_name
+            FROM wp_posts 
+            WHERE post_status="publish" AND post_type="post"
+            ORDER BY post_date DESC
+            LIMIT 5
+            ',
+        'top-terms'=>'
+            SELECT 
+            t.name,
+            t.slug,
+            wptt.count
+            FROM wp_term_taxonomy AS wptt
+            INNER JOIN wp_terms AS t ON t.term_id=wptt.term_id
+            WHERE wptt.taxonomy=?
+            ORDER BY wptt.count DESC
+            LIMIT ? 
+            ',
+        'top-authors'=>'
+            SELECT 
+            u.user_nicename,
+            u.display_name,
+            (SELECT COUNT(*) FROM wp_posts AS wp WHERE wp.post_author=u.ID) AS count 
+            FROM wp_users AS u
+            ORDER BY count
+            LIMIT ?
+        '
+
+
     );
     
-    private $workingQ;
+    private $workingQ='';
+
 
     public function data($limit=''){
+        $sel = substr(ltrim($this->workingQ),0,6);
+        if($sel=='SELECT'){
+            return \DB::query($this->workingQ);
+        }//if
+
         return \DB::query('
             SELECT 
             p.*,
-            DATE_FORMAT(p.post_date,"'.WP::settings['date_format'].'") AS format_date, 
+            DATE_FORMAT(p.post_date,"'.\WP::settings('date_format').'") AS format_date, 
             t.name,
             t.slug,
             c.name AS category,
@@ -47,14 +107,35 @@ class WordPress {
 
 
     public function get($action,$vars=null,$opts=null){
-        $this->workingQ = \DB::set($this->$qs[$action],$vars);
+        $this->prep($action,$vars,$opts);
         return $this->data();
     }//get
 
 
     public function prep($action,$vars=null,$opts=null){
-        $this->workingQ = \DB::set($this->$qs[$action],$vars);
+        $this->workingQ = \DB::set($this->qs[$action],$vars);
     }//prep
+
+
+    /**
+     * Return the total number of posts that match the $workingCondition.
+     *
+     *
+     * @return numeric
+    */
+    public function totalCount(){
+
+        $row = \DB::query('
+            SELECT COUNT(*) as total
+            FROM wp_posts AS p
+            INNER JOIN wp_users AS u ON u.ID=p.post_author
+            WHERE p.post_status="publish" AND p.post_type="post" '.$this->workingQ
+            )->fetch_assoc();
+
+        return $row['total'];
+
+    }//totalCount
+
 
 
     public function searchData($search,$limit=''){
@@ -64,12 +145,12 @@ class WordPress {
                 $search[$k] = \DB::set($s,Array('%'.$v.'%','%'.$v.'%'));
             }//foreach
             $search[count($search)-1] = rtrim($search[count($search)-1],'OR ');
-            $this->workingCondition = ' AND ('.implode('',$search).') ORDER BY p.post_date DESC ';
+            $this->workingQ = ' AND ('.implode('',$search).') ORDER BY p.post_date DESC ';
         }//if
         else {
             $search = '%'.$search.'%';
-            $this->workingCondition = ' AND (p.post_title LIKE ? OR p.post_content LIKE ?) ORDER BY p.post_date DESC ';
-            $this->workingCondition = \DB::set($this->workingCondition,Array($search,$search));
+            $this->workingQ = ' AND (p.post_title LIKE ? OR p.post_content LIKE ?) ORDER BY p.post_date DESC ';
+            $this->workingQ = \DB::set($this->workingQ,Array($search,$search));
         }//el
 
         return $this->data($limit);

@@ -70,11 +70,11 @@ Router::get(WP::path().'category/',function(){
     WP::printBreadCrumbs($c);
 
 
-    WP::template('category-list','<a class="wp-category-list" href="{{$path}}category/{{$slug}}">{{$name}} - {{$count}}</a>');
+    //WP::template('category-list','<a class="wp-category-list" href="{{$path}}category/{{$slug}}">{{$name}} - {{$count}}</a>');
     $categories = WP::topCategories(1000);
     View::html("<div class='clearfix'>{$categories}</div>");
 
-    WP::clearTemplate('category-list');
+    //WP::clearTemplate('category-list');
 });
 
 

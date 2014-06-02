@@ -7,24 +7,19 @@ namespace Disco\addon\Wordpress\classes;
 
 /**
  *
- *
 */
-class WordPress extends \Disco\addon\Wordpress\model\WordPress {
+class WordPress {
 
-    //condition used to query to generate feeds
-    private $workingCondition='';
-
-
-    //are we viewing a single post?
+    //@var boolean Are we viewing a single post?
     private $singlePost = false;
 
-    
+    //@var string Full posts or feed? (post|feed)
+    private $type = 'post';
 
-    //what is the path of the wordpress installation?
+    //@var string What is the path of the wordpress installation?
     public $path='';
 
-
-    //settings
+    //@var array Wordpress settings.
     public $settings = Array(
         'posts_per_page'=>4,
         'inject_feed'=>true,
@@ -36,9 +31,9 @@ class WordPress extends \Disco\addon\Wordpress\model\WordPress {
 
 
     /**
-     *      In the constructor we set the posts_per_page, and the path from the wp_options table
+     * In the constructor we set the posts_per_page and the path to wordpress directory from the wp_options table.
      *
-     *      @return void
+     * @return void
     */
     public function __construct(){
         $row = \DB::query('
@@ -61,11 +56,12 @@ class WordPress extends \Disco\addon\Wordpress\model\WordPress {
 
 
     /**
-     *      Set the path that wordpress is supposed to serve files from, or read the path. 
+     * Set the path that wordpress is supposed to serve files from, or read the path. 
      *
      *
-     *      @param $path the path
-     *      @return mixed 
+     * @param string|null $path The path to the wordpress directory.
+     *
+     * @return string|null 
     */
     public function path($path=null) {
         if($path!=null){
@@ -78,14 +74,14 @@ class WordPress extends \Disco\addon\Wordpress\model\WordPress {
 
 
 
-
     /**
-     *      Create,Update,Read settings
+     * Create,Update,Read settings.
      *
      *
-     *      @param $k the setting key
-     *      @param $v the setting value 
-     *      @return mixed
+     * @param string|null $k The setting key.
+     * @param sting|null $v The setting value. 
+     *
+     * @return string|null  
     */ 
     public function settings($k=null,$v=null){
         if($k==null){
@@ -100,30 +96,30 @@ class WordPress extends \Disco\addon\Wordpress\model\WordPress {
 
 
     /**
-     *      Generate the index
+     * Generate the index
      *
      *
-     *      @return mixed 
+     * @return mixed 
     */
     public function index(){
-        $this->workingCondition = ' ORDER BY p.post_date DESC ';
+        \WPm::prep('index');
         return $this->feed();
     }//index
 
 
 
     /**
-     *      Generate the results of a Search 
+     * Generate the results of a Search.
      *
      *
-     *      @param $search the term being searched
-     *      @return mixed 
+     * @param string $search The term being searched.
+     *
+     * @return string 
     */
     public function search($search){
         $search = '%'.$search.'%';
-        $this->workingCondition = ' AND (p.post_title LIKE ? OR p.post_content LIKE ?) ORDER BY p.post_date DESC ';
-        $this->workingCondition = \DB::set($this->workingCondition,Array($search,$search));
-        $this->templates['post'] = $this->templates['feed'];
+        \WPm::prep('search',Array($search,$search));
+        $this->type='feed';
         return $this->feed();
     }//index
 
@@ -133,112 +129,75 @@ class WordPress extends \Disco\addon\Wordpress\model\WordPress {
      * Generate a single post.
      *
      *
-     * @param $slug the posts url
-     * @reutrn mixed 
+     * @param string $slug The posts URI. 
+     *
+     * @reutrn string 
     */
     public function post($slug){
-        $this->workingCondition = \DB::set(' AND p.post_name=?',$slug);
+        \WPm::prep('post',$slug);
         $this->singlePost=true;
         return $this->feed();
     }//post
 
 
-    /**
-     * Generate a single posts data.
-     *
-     *
-     * @param $slug the posts url
-     * @reutrn mixed 
-    */
-    public function postData($slug){
-        $this->workingCondition = \DB::set(' AND p.post_name=?',$slug);
-        return $this->data();
-    }//post
-
-
 
     /**
-     *      Generate a List of the posts by Date
+     * Generate a List of the posts by ordered by Date.
      *
      *
+     * @return string
     */
     public function listPosts(){
-        //$this->templates['post'] = $this->templates['feed'];
-        //$this->workingCondition = ' ORDER BY p.post_date DESC ';
-        parent::prep('list-posts');
+        $this->type='feed';
+        \WPm::prep('list-posts');
         return $this->feed();
     }//listArticles
 
 
 
     /**
-     *      Generate the feed of posts related to a tag
+     * Generate the feed of posts related to a tag.
      *
      *
-     *      @param $tag the tag 
-     *      @return mixed
+     * @param string $tag The tag.
+     *
+     * @return string 
     */
     public function tag($tag){
-        $where = '
-            AND p.ID IN ( 
-                SELECT wptr.object_id 
-                FROM wp_term_relationships AS wptr
-                INNER JOIN wp_term_taxonomy AS wptt ON wptt.term_taxonomy_id=wptr.term_taxonomy_id AND wptt.taxonomy="post_tag"
-                INNER JOIN wp_terms AS t ON t.term_id=wptt.term_id
-                WHERE t.slug=?
-            ) 
-            ORDER BY p.post_date DESC
-            ';
-
-        $this->workingCondition = \DB::set($where,$tag);
-        $this->templates['post'] = $this->templates['feed'];
+        $this->type='feed';
+        \WPm::prep('tag',$tag);
         return $this->feed();
     }//tag
 
 
 
     /**
-     *      Generate the feed of posts related to a category
+     * Generate the feed of posts related to a category.
      *
      *
-     *      @param $category the category
-     *      @return mixed
+     * @param string $category The category.
+     *
+     * @return string 
     */
     public function category($category){
-        $where = '
-            AND p.ID IN ( 
-                SELECT wptr.object_id 
-                FROM wp_term_relationships AS wptr
-                INNER JOIN wp_term_taxonomy AS wptt ON wptt.term_taxonomy_id=wptr.term_taxonomy_id AND wptt.taxonomy="category"
-                INNER JOIN wp_terms AS t ON t.term_id=wptt.term_id
-                WHERE t.slug=?
-            ) 
-            ORDER BY p.post_date DESC
-            ';
-
-        $this->workingCondition = \DB::set($where,$category);
-        $this->templates['post'] = $this->templates['feed'];
+        \WPm::prep('category',$category);
+        $this->type='feed';
         return $this->feed();
     }//category
 
 
 
     /**
-     *      Generate the feed of posts authored by a particlar author
+     * Generate the feed of posts authored by a particlar author.
      *
      *
-     *      @param $author the author
-     *      @return mixed
+     * @param string $author The author.
+     *
+     * @return string 
     */
     public function author($author){
-        $where = '
-            AND p.post_author = ( SELECT wpu.ID FROM wp_users AS wpu WHERE wpu.user_nicename=? )
-            ORDER BY p.post_date DESC 
-            ';
-
-
-        $this->workingCondition = \DB::set($where,$author);
-        $this->templates['post'] = $this->templates['feed'];
+        \WPm::prep('author',$author);
+        $this->type='feed';
         $this->feed();
     }//tag
 
@@ -246,22 +205,14 @@ class WordPress extends \Disco\addon\Wordpress\model\WordPress {
 
 
     /**
-     *      Return a list of just links of the most recent posts
+     * Return a list of just links of the most recent posts.
      *
      *
-     *      @return $html string the markup
+     * @return string  
     */
     public function recentPosts(){
 
-        $posts = \DB::query('
-            SELECT 
-            post_title,
-            post_name
-            FROM wp_posts 
-            WHERE post_status="publish" AND post_type="post"
-            ORDER BY post_date DESC
-            LIMIT 5
-        ');
+        $posts = \WPm::get('recent-posts');
 
         $html='';
         while($row = $posts->fetch_assoc()){
@@ -277,15 +228,16 @@ class WordPress extends \Disco\addon\Wordpress\model\WordPress {
 
 
     /**
-     *      Return top X number of tags
+     * Return top X number of tags.
      *
      *
-     *      @param $count the number of tags to return
+     * @param integer $count The number of tags to return.
+     *
+     * @return string
     */
     public function topTags($count=5){
 
-
-        $result = $this->topTerms($count,"post_tag");
+        $result = \WPm::get('top-terms',Array($count,'post_tag'));
 
         $html = '';
         while($row = $result->fetch_assoc()){
@@ -300,14 +252,14 @@ class WordPress extends \Disco\addon\Wordpress\model\WordPress {
 
 
     /**
-     *      Return top X number of categories 
+     * Return top X number of categories.
      *
      *
-     *      @param $count the number of categories to return
+     * @param integer $count The number of categories to return.
     */
     public function topCategories($count=5){
 
-        $result = $this->topTerms($count,"category");
+        $result = \WPm::get('top-terms',Array('category',$count));
 
         $html = '';
         while($row = $result->fetch_assoc()){
@@ -322,50 +274,17 @@ class WordPress extends \Disco\addon\Wordpress\model\WordPress {
 
 
 
-
     /**
-     *      Get the Top X requested tags or categories (term)
+     * Return the top X authors.
      *
      *
-     *      @param $count numeric the number to return
-     *      @param $type string the type of term
-     *      @return object
-    */
-    private function topTerms($count,$type){
-        return \DB::query('
-            SELECT 
-            t.name,
-            t.slug,
-            wptt.count
-            FROM wp_term_taxonomy AS wptt
-            INNER JOIN wp_terms AS t ON t.term_id=wptt.term_id
-            WHERE wptt.taxonomy=?
-            ORDER BY wptt.count DESC
-            LIMIT ? 
-        ',Array($type,$count));
-
-    }//topXTerms
-
-
-
-    /**
-     *      Return the top X authors
+     * @param integer $count The number of authors to return.
      *
-     *
-     *      @param $count numeric the number of authors to return
-     *      @return string $html the markup
+     * @return string 
     */
     public function topAuthors($count=5){
 
-        $result = \DB::query('
-            SELECT 
-            u.user_nicename,
-            u.display_name,
-            (SELECT COUNT(*) FROM wp_posts AS wp WHERE wp.post_author=u.ID) AS count 
-            FROM wp_users AS u
-            ORDER BY count
-            LIMIT ?
-            ',$count);
+        $result = \WPm::get('top-authors',$count);
 
         $html = '';
         while($row = $result->fetch_assoc()){
@@ -382,39 +301,35 @@ class WordPress extends \Disco\addon\Wordpress\model\WordPress {
 
 
     /**
-     *      Generate the requested feed (accounting for pagination) based on the set $matchingCondition
+     * Generate the requested feed (accounting for pagination).
      *
      *
-     *      @return mixed
+     * @return string|void 
     */ 
     private function feed(){
         $s=0;
 
         if(\Data::get('current-page')>=1){
-
             $s = \Data::get('current-page');
-
             $s = ($s-1)*$this->settings['posts_per_page'];
-
         }//if
         else if(\Data::get('page')===0){
             $send = rtrim('0',$_SERVER['REQUEST_URI']);
             $send.='1';
             header('Location: '.$send);
+            exit;
         }//elif
 
         $limit = " LIMIT {$s},{$this->settings['posts_per_page']}";
 
-        $posts = parent::data($limit);
+        $posts = \WPm::data($limit);
 
         $feed = '';
-
         $iter = 0;
         while($iter<$posts->num_rows){
 
             $tags=Array();
             $cats=Array();
-
 
             do {
 
@@ -435,7 +350,6 @@ class WordPress extends \Disco\addon\Wordpress\model\WordPress {
 
             } while($row['post_id']==$nRow['post_id']);
 
-
             $row['tags'] = $tags;
             $row['cats'] = $cats;
 
@@ -454,15 +368,18 @@ class WordPress extends \Disco\addon\Wordpress\model\WordPress {
 
             $row['path'] = $this->path;
 
-            $feed.= \Template::build('wordpress/post',$row);
+            if($this->type=='feed'){
+                $feed.= \Template::build('wordpress/feed',$row);
+            }//if
+            else {
+                $feed.= \Template::build('wordpress/post',$row);
+            }//el
 
         }//while
-
 
         if(!$this->singlePost){
             $feed.= $this->printPagination();
         }//if
-
 
         if($this->settings['inject_feed']){
             \View::html($feed);
@@ -476,11 +393,12 @@ class WordPress extends \Disco\addon\Wordpress\model\WordPress {
 
 
     /**
-     *      Format the template that holds the tags of a post
+     * Format the template that holds the tags of a post.
      *
      *
-     *      @param $terms array the list of terms
-     *      @return string 
+     * @param array $terms The list of terms.
+     *
+     * @return string 
     */
     private function formatTerms($terms){
 
@@ -498,11 +416,12 @@ class WordPress extends \Disco\addon\Wordpress\model\WordPress {
 
 
     /**
-     *      Format the template that holds the categories of a post
+     * Format the template that holds the categories of a post.
      *
      *
-     *      @param $terms array the list of terms
-     *      @return string 
+     * @param array $terms The list of terms.
+     *
+     * @return string 
     */
     private function formatCats($terms){
 
@@ -519,37 +438,15 @@ class WordPress extends \Disco\addon\Wordpress\model\WordPress {
 
 
 
-
     /**
-     *      Return the total number of posts that match the $workingCondition
+     * Generate the pagination markup relative to the feed being requested.
      *
      *
-     *      @return numeric
-    */
-    private function totalCount(){
-
-        $row = \DB::query('
-            SELECT COUNT(*) as total
-            FROM wp_posts AS p
-            INNER JOIN wp_users AS u ON u.ID=p.post_author
-            WHERE p.post_status="publish" AND p.post_type="post" '.$this->workingCondition
-            )->fetch_assoc();
-
-        return $row['total'];
-
-    }//totalCount
-
-
-
-    /**
-     *      Generate the pagination markup relative to the feed being requested
-     *
-     *
-     *      @return string the markup
+     * @return string 
     */ 
     private function printPagination(){
 
-        $total = $this->totalCount();
+        $total = \WPm::totalCount();
 
         $html='';
         $numPages = round($total/$this->settings['posts_per_page'],0);
@@ -638,14 +535,13 @@ class WordPress extends \Disco\addon\Wordpress\model\WordPress {
 
 
 
-
-
     /**
-     *      Print page breadcrumbs
+     * Print page breadcrumbs.
      *
      *
-     *      @param $data array the crumbs
-     *      @return t
+     * @param array $data The crumbs.
+     *
+     * @return string  
     */
     public function printBreadCrumbs($data){
 
@@ -673,7 +569,4 @@ class WordPress extends \Disco\addon\Wordpress\model\WordPress {
     }//printBreadCrumbs
 
 }//class
-
-
-
 ?>
