@@ -6,20 +6,28 @@ namespace Disco\addon\Wordpress\classes;
 
 
 /**
- *
+ * WordPress Class.
 */
-class WordPress {
+class WordPress extends \Disco\addon\Wordpress\model\WordPress {
 
-    //@var boolean Are we viewing a single post?
+    /**
+    * @var boolean Are we viewing a single post?
+    */
     private $singlePost = false;
 
-    //@var string Full posts or feed? (post|feed)
+    /**
+     * @var string Full posts or feed? (post|feed)
+    */
     private $type = 'post';
 
-    //@var string What is the path of the wordpress installation?
+    /**
+    * @var string What is the path of the wordpress installation?
+    */
     public $path='';
 
-    //@var array Wordpress settings.
+    /**
+    * @var array Wordpress settings.
+    */
     public $settings = Array(
         'posts_per_page'=>4,
         'inject_feed'=>true,
@@ -102,7 +110,7 @@ class WordPress {
      * @return mixed 
     */
     public function index(){
-        \WPm::prep('index');
+        $this->prep('index');
         return $this->feed();
     }//index
 
@@ -118,7 +126,7 @@ class WordPress {
     */
     public function search($search){
         $search = '%'.$search.'%';
-        \WPm::prep('search',Array($search,$search));
+        $this->prep('search',Array($search,$search));
         $this->type='feed';
         return $this->feed();
     }//index
@@ -134,7 +142,7 @@ class WordPress {
      * @reutrn string 
     */
     public function post($slug){
-        \WPm::prep('post',$slug);
+        $this->prep('post',$slug);
         $this->singlePost=true;
         return $this->feed();
     }//post
@@ -149,7 +157,7 @@ class WordPress {
     */
     public function listPosts(){
         $this->type='feed';
-        \WPm::prep('list-posts');
+        $this->prep('list-posts');
         return $this->feed();
     }//listArticles
 
@@ -165,7 +173,7 @@ class WordPress {
     */
     public function tag($tag){
         $this->type='feed';
-        \WPm::prep('tag',$tag);
+        $this->prep('tag',$tag);
         return $this->feed();
     }//tag
 
@@ -180,7 +188,7 @@ class WordPress {
      * @return string 
     */
     public function category($category){
-        \WPm::prep('category',$category);
+        $this->prep('category',$category);
         $this->type='feed';
         return $this->feed();
     }//category
@@ -196,7 +204,7 @@ class WordPress {
      * @return string 
     */
     public function author($author){
-        \WPm::prep('author',$author);
+        $this->prep('author',$author);
         $this->type='feed';
         $this->feed();
     }//tag
@@ -212,7 +220,7 @@ class WordPress {
     */
     public function recentPosts(){
 
-        $posts = \WPm::get('recent-posts');
+        $posts = $this->get('recent-posts');
 
         $html='';
         while($row = $posts->fetch_assoc()){
@@ -237,7 +245,7 @@ class WordPress {
     */
     public function topTags($count=5){
 
-        $result = \WPm::get('top-terms',Array($count,'post_tag'));
+        $result = $this->get('top-terms',Array($count,'post_tag'));
 
         $html = '';
         while($row = $result->fetch_assoc()){
@@ -259,7 +267,7 @@ class WordPress {
     */
     public function topCategories($count=5){
 
-        $result = \WPm::get('top-terms',Array('category',$count));
+        $result = $this->get('top-terms',Array('category',$count));
 
         $html = '';
         while($row = $result->fetch_assoc()){
@@ -284,7 +292,7 @@ class WordPress {
     */
     public function topAuthors($count=5){
 
-        $result = \WPm::get('top-authors',$count);
+        $result = $this->get('top-authors',$count);
 
         $html = '';
         while($row = $result->fetch_assoc()){
@@ -322,7 +330,7 @@ class WordPress {
 
         $limit = " LIMIT {$s},{$this->settings['posts_per_page']}";
 
-        $posts = \WPm::data($limit);
+        $posts = $this->data($limit);
 
         $feed = '';
         $iter = 0;
@@ -446,7 +454,7 @@ class WordPress {
     */ 
     private function printPagination(){
 
-        $total = \WPm::totalCount();
+        $total = $this->totalCount();
 
         $html='';
         $numPages = round($total/$this->settings['posts_per_page'],0);
