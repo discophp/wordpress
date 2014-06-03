@@ -245,7 +245,7 @@ class WordPress extends \Disco\addon\Wordpress\model\WordPress {
     */
     public function topTags($count=5){
 
-        $result = $this->get('top-terms',Array($count,'post_tag'));
+        $result = $this->get('top-terms',Array('post_tag',$count));
 
         $html = '';
         while($row = $result->fetch_assoc()){
