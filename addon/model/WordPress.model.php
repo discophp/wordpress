@@ -1,8 +1,18 @@
 <?php
 namespace Disco\addon\Wordpress\model;
+/**
+ * This file holds the Disco\addon\Wordpress\model\WordPress class;
+*/
 
+
+/**
+ * The is the Wordpress Model, it provides access to the data empowering wordpress.
+*/
 class WordPress {
 
+    /**
+     * @var array The query snippets used to generate the core WP data.
+     */
     public $qs = Array(
         'index'=>' ORDER BY p.post_date DESC ',
         'search'=>' AND (p.post_title LIKE ? OR p.post_content LIKE ?) ORDER BY p.post_date DESC ',
@@ -62,9 +72,22 @@ class WordPress {
 
     );
     
+
+    /**
+     * @var string The snippet in $qs are we working with.
+    */
     private $workingQ='';
 
 
+
+    /**
+     * Get the \mysqli_result requested by $this->workingQ instated by either $this->get() | $this->prep().
+     *
+     *
+     * @var string $limit The limit to apply to the $this->workingQ.
+     *
+     * @return \mysqli_result
+    */
     public function data($limit=''){
         $sel = substr(ltrim($this->workingQ),0,6);
         if($sel=='SELECT'){
@@ -106,19 +129,52 @@ class WordPress {
     }//data
 
 
+    /**
+     * Get the result of a specified $action with bound $vars.
+     *
+     * Possible $action options:
+     *  - index : Primary wordpress feed of articles listed by date. 
+     *  - search : Search for regex matches of a search term in the database
+     *  - list-posts : Return the most recent posts as a feed.
+     *  - post : A single post identified by the slug.
+     *  - tag : Articles sorted by date that used a particular tag.
+     *  - category : Articles sorted by date that used a particular category.
+     *  - author : Articles written by a particular author.
+     *  - recent-posts : List of recent posts.
+     *  - top-terms : Top X terms either 'category' or 'post_tag'
+     *  - top-authors : top X authors
+     *
+     * @var string $action The action to take from $this->qs.
+     * @var null|string|array $vars The variables to bind into the query.
+     * @var null|string|array $opts Reserved for expansion.
+     *
+     * @return \mysqli_result 
+     *
+    */
     public function get($action,$vars=null,$opts=null){
         $this->prep($action,$vars,$opts);
         return $this->data();
     }//get
 
 
+
+    /**
+     * Prepare the query specified by $action and $vars and store it into the $this->workingQ.
+     *
+     * @var string $action The action to take from $this->qs.
+     * @var null|string|array $vars The variables to bind into the query.
+     * @var null|string|array $opts Reserved for expansion.
+     *
+     * @return void 
+    */
     public function prep($action,$vars=null,$opts=null){
         $this->workingQ = \DB::set($this->qs[$action],$vars);
     }//prep
 
 
+
     /**
-     * Return the total number of posts that match the $workingCondition.
+     * Return the total number of posts that match the $workingQ.
      *
      *
      * @return numeric
@@ -138,6 +194,15 @@ class WordPress {
 
 
 
+    /**
+     * Perform a regex search on the database of any number of $search terms.
+     *
+     *
+     *  @var string|array $search The search terms to use to search the DB.
+     *  @var string $limi The number of results to return.
+     *
+     *  @return \mysqli_result
+     */
     public function searchData($search,$limit=''){
         if(is_array($search)){
             $s = '(p.post_title LIKE ? OR p.post_content LIKE ?) OR ';
@@ -157,10 +222,5 @@ class WordPress {
 
     }//searchdata
 
-
-
-
 }//WordPress
-
-
 ?>

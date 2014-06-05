@@ -6,7 +6,10 @@ namespace Disco\addon\Wordpress\classes;
 
 
 /**
- * WordPress Class.
+ * Wordpress simplified, improved, and much much faster.
+ *
+ * If you want html returned from method calls change the setting inject_feed=false,
+ * by default it will inject the html in your Views HTML stack.
 */
 class WordPress extends \Disco\addon\Wordpress\model\WordPress {
 
@@ -264,6 +267,8 @@ class WordPress extends \Disco\addon\Wordpress\model\WordPress {
      *
      *
      * @param integer $count The number of categories to return.
+     *
+     * @return string
     */
     public function topCategories($count=5){
 
