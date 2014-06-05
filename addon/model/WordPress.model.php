@@ -1,7 +1,7 @@
 <?php
 namespace Disco\addon\Wordpress\model;
 /**
- * This file holds the Disco\addon\Wordpress\model\WordPress class;
+ * This file holds the Disco\addon\Wordpress\model\WordPress class.
 */
 
 
@@ -84,7 +84,7 @@ class WordPress {
      * Get the \mysqli_result requested by $this->workingQ instated by either $this->get() | $this->prep().
      *
      *
-     * @var string $limit The limit to apply to the $this->workingQ.
+     * @param string $limit The limit to apply to the $this->workingQ.
      *
      * @return \mysqli_result
     */
@@ -131,7 +131,6 @@ class WordPress {
 
     /**
      * Get the result of a specified $action with bound $vars.
-     *
      * Possible $action options:
      *  - index : Primary wordpress feed of articles listed by date. 
      *  - search : Search for regex matches of a search term in the database
@@ -141,15 +140,15 @@ class WordPress {
      *  - category : Articles sorted by date that used a particular category.
      *  - author : Articles written by a particular author.
      *  - recent-posts : List of recent posts.
-     *  - top-terms : Top X terms either 'category' or 'post_tag'
-     *  - top-authors : top X authors
+     *  - top-terms : Top X terms either 'category' or 'post_tag'.
+     *  - top-authors : top X authors.
      *
-     * @var string $action The action to take from $this->qs.
-     * @var null|string|array $vars The variables to bind into the query.
-     * @var null|string|array $opts Reserved for expansion.
+     *
+     * @param string $action The action to take from $this->qs.
+     * @param null|string|array $vars The variables to bind into the query.
+     * @param null|string|array $opts Reserved for expansion.
      *
      * @return \mysqli_result 
-     *
     */
     public function get($action,$vars=null,$opts=null){
         $this->prep($action,$vars,$opts);
@@ -161,9 +160,10 @@ class WordPress {
     /**
      * Prepare the query specified by $action and $vars and store it into the $this->workingQ.
      *
-     * @var string $action The action to take from $this->qs.
-     * @var null|string|array $vars The variables to bind into the query.
-     * @var null|string|array $opts Reserved for expansion.
+     *
+     * @param string $action The action to take from $this->qs.
+     * @param null|string|array $vars The variables to bind into the query.
+     * @param null|string|array $opts Reserved for expansion.
      *
      * @return void 
     */
@@ -195,11 +195,11 @@ class WordPress {
 
 
     /**
-     * Perform a regex search on the database of any number of $search terms.
+     * Perform a regex search on the database of any number of search terms.
      *
      *
-     *  @var string|array $search The search terms to use to search the DB.
-     *  @var string $limi The number of results to return.
+     *  @param string|array $search The search terms to use to search the DB. 
+     *  @param string       $limit  The number of results to return.
      *
      *  @return \mysqli_result
      */
@@ -223,4 +223,5 @@ class WordPress {
     }//searchdata
 
 }//WordPress
+
 ?>
