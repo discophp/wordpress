@@ -60,6 +60,7 @@ called wordpress/ and naming the template you wish to override by the same name 
 
 <p>You can receive <a href='http://www.php.net//manual/en/class.mysqli-result.php'>mysqli_result objects</a> back</p>
 
+<p><i>[option]</i></p>
 <ul>
     <li>index : Primary wordpress feed of articles listed by date.</li>
     <li>search : Search for regex matches of a search term in the database.</li>
@@ -67,8 +68,8 @@ called wordpress/ and naming the template you wish to override by the same name 
     <li>post : A single post identified by the slug.</li>
     <li>tag : Articles sorted by date that used a particular tag.</li>
     <li>category : Articles sorted by date that used a particular category.</li>
-    <li>author : Articles written by a particular author</li>.
-    <li>recent-posts : List of recent posts</li>.
+    <li>author : Articles written by a particular author.</li>
+    <li>recent-posts : List of recent posts.</li>
     <li>top-terms : Top X terms either 'category' or 'post_tag'.</li>
     <li>top-authors : top X authors.</li>
 </ul>
