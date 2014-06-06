@@ -1,5 +1,4 @@
 <h1>Wordpress Addon</h1>
-==============
 
 <p>Sick of Wordpress's bloated code but love their administration panel? Your in the right place.</p>
 
@@ -13,17 +12,18 @@ where now to hide it from public view and mask the login without affecting the f
 <p>Prep your application by registering the Wordpress Facades with the Disco container:</p>
 
 <p>Make the WP Facade</p>
-'''php
+
+```php
    Disco::make('WP',function(){
         return new Disco\addon\Wordpress\classes\WordPress;
    });
-'''
+```
 
 <p>Create a Router Filter for the wordpress directory</p>
 
-'''php
+```php
     Router::filter(WP::path().'/{*}')->to('WordPress');
-'''
+```
 
 <p>Thats it! Wordpress is set up!</p>
 
@@ -54,9 +54,9 @@ called wordpress/ and naming the template you wish to override by the same name 
 
 <p>Using the method:</p>
 
-'''php
+```php
     $data = WP::get([option],[vars]);
-'''
+```
 
 <p>You can receive <a href='http://www.php.net//manual/en/class.mysqli-result.php'>mysqli_result objects</a> back</p>
 
