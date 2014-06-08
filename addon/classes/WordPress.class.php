@@ -464,6 +464,10 @@ class WordPress extends \Disco\addon\Wordpress\model\WordPress {
         $html='';
         $numPages = round($total/$this->settings['posts_per_page'],0);
 
+        if($total % $this->settings['posts_per_page'] != 0 ){
+            $numPages++;
+        }//if
+
         if($numPages==0){
            return ''; 
         }
